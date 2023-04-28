@@ -42,29 +42,87 @@ public class MainActivity extends AppCompatActivity {
         btnDelete = findViewById(R.id.btnDelete);
         btnEdit = findViewById(R.id.btnEdit);
 
+        btnDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                db.collection("users").document(idUserFind)
+                        .delete()
+                        .addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void unused) {
+                                Toast.makeText(getApplicationContext(), "Usuario eliminado correctamente", Toast.LENGTH_SHORT).show();
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Toast.makeText(getApplicationContext(), "Usuario no eliminado", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+            }
+        });
         btnEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (!etUsername.getText().toString().isEmpty() && !etName.getText().toString().isEmpty() && !etPassword.getText().toString().isEmpty()) {
-                    if (!UsernameFind.equals(etUsername.getText().toString())) {
+                    if (!UsernameFind.equals(etUsername.getText().toString())) {//si username es diferente al nuevo
                         //Busqueda de username
                         db.collection("users").whereEqualTo("username", etUsername.getText().toString()).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                             @Override
                             public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                                if (task.isSuccessful()) {
+                                if (task.isSuccessful()) {//No encontro el nuevo username
                                     if (task.getResult().isEmpty()) {
-
-
+                                        //actualizar los datos del usuario
+                                        Map<String, Object> user = new HashMap<>();
+                                        user.put("name", etName.getText().toString());
+                                        user.put("username", etUsername.getText().toString());
+                                        user.put("password", etPassword.getText().toString());
+                                        db.collection("users").document(idUserFind)
+                                                .set(user)
+                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                    @Override
+                                                    public void onSuccess(Void unused) {
+                                                        Toast.makeText(getApplicationContext(), "Usuario actualizado correctamente", Toast.LENGTH_SHORT).show();
+                                                    }
+                                                })
+                                                .addOnFailureListener(new OnFailureListener() {
+                                                    @Override
+                                                    public void onFailure(@NonNull Exception e) {
+                                                        Toast.makeText(getApplicationContext(), "Error de conexión a la base de datos", Toast.LENGTH_SHORT).show();
+                                                    }
+                                                });
                                     } else {
-                                        Toast.makeText(getApplicationContext(), "Usuario existe, Intentelo con otro...", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(MainActivity.this, "Usuario existe, Intentelo con otro...", Toast.LENGTH_SHORT).show();
                                     }
                                 }
                             }
                         });
                     }
+                    else{
+                        //Son iguales los usernames (anterios y el actual), es decir no se cambia el username
+                        //actualizar los datos del usuario
+                        Map<String, Object> user = new HashMap<>();
+                        user.put("name", etName.getText().toString());
+                        user.put("username", etUsername.getText().toString());
+                        user.put("password", etPassword.getText().toString());
+                        db.collection("users").document(idUserFind)
+                                .set(user)
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void unused) {
+                                        Toast.makeText(getApplicationContext(), "Usuario actualizado correctamente", Toast.LENGTH_SHORT).show();
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Toast.makeText(getApplicationContext(), "Error de conexión a la base de datos", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                    }
                 }
                 else {
-                    Toast.makeText(getApplicationContext(), "Usuario No existe!...Inténtelo con otro", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Debe ingresar todos los datos para editar, intenta de nuevo", Toast.LENGTH_SHORT).show();
                 }
             }
         });
